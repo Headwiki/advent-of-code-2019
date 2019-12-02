@@ -11,8 +11,8 @@ fn main() -> io::Result<()> {
         intcodes = line.unwrap().split(',').map(|i| i.parse::<u32>().unwrap()).collect();
     }
 
-    println!("{:?}", execute_intcode(intcodes));
-
+    //println!("{:?}", execute_intcode(intcodes));
+    println!("{:?}", brute_intcodes(&intcodes));
     Ok(())
 }
 
@@ -42,4 +42,20 @@ fn execute_intcode (mut intcodes: Vec<u32>) -> Vec<u32> {
         intcode_op_pos += 4;
     }
 
+}
+
+fn brute_intcodes(intcodes: &Vec<u32>) -> Vec<u32> {
+    let mut intcodes = intcodes.clone();
+    for x in 0..100 {
+        intcodes[1] = x;
+        for y in 0..100 {
+            intcodes[2] = y;
+
+            let result = execute_intcode(intcodes.clone());
+            if result[0] == 19690720 {
+                return result
+            }
+        }
+    }
+    vec![0]
 }
