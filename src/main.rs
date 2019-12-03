@@ -7,6 +7,12 @@ struct Point {
     y: i32
 }
 
+#[derive(Debug, PartialEq, PartialOrd, Clone)]
+struct Intersection {
+    point: Point,
+    len: u32
+}
+
 fn main() -> io::Result<()> {
     let file = File::open("input")?;
     let reader = BufReader::new(file);
@@ -22,27 +28,58 @@ fn main() -> io::Result<()> {
 
     for point_a in paths[0].iter() {
         for point_b in paths[1].iter() {
-            if ((point_a == point_b) && (point_a != &Point {x: 0, y: 0})) {
+            if (point_a == point_b) && (point_a != &Point {x: 0, y: 0}) {
                 println!("{:?}", point_a);
                 intersections.push(point_a.clone());
             }
         }
     }
 
-    for point in intersections {
+    /* for point in intersections {
         let sum = point.x.abs() + point.y.abs();
         if sum < min {
             min = sum;
         }
+    } */
+
+    // Part 2
+
+    let mut shortest_intersection = Intersection { point: Point {x: 0, y: 0}, len: core::u32::MAX };
+
+    for intersection in intersections.iter() {
+        let mut path_one_length = 0;
+        for point in paths[0].iter() {
+            if point == intersection {
+                println!("Break at intersection {:?}, path 0: {:?}", &intersection, &path_one_length);
+                break;
+            }
+            path_one_length += 1;
+        }
+
+        let mut path_two_length = 0;
+        for point in paths[1].iter() {
+            if point == intersection {
+                println!("Break at intersection {:?}, path 1: {:?}", &intersection, &path_two_length);
+                break;
+            }
+            path_two_length += 1;
+        }
+
+        let sum = path_one_length + path_two_length;
+        if sum < shortest_intersection.len {
+            shortest_intersection.point = intersection.clone();
+            shortest_intersection.len = sum;
+        }
+
     }
 
-    println!("{:?}", min);
+    println!("{:?}", shortest_intersection);
 
     Ok(())
 }
 
 fn parse_path(path: &String) -> Vec<Point> {
-    let mut directions: Vec<&str> = path.split(',').collect();
+    let directions: Vec<&str> = path.split(',').collect();
     let mut path: Vec<Point> = Vec::new();
 
     path.push(Point {x: 0, y: 0});
