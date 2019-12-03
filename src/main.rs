@@ -17,8 +17,6 @@ fn main() -> io::Result<()> {
         paths.push(parse_path(&line?));
     }
 
-    //println!("{:?}", paths);
-
     for point_a in paths[0].clone() {
         for point_b in paths[1].clone() {
             if point_a == point_b {
@@ -48,7 +46,7 @@ fn parse_direction(start_point: &Point, direction: &str) -> Vec<Point> {
 
     match direction.chars().next().unwrap() {
         'R' => {
-            for i in 1..direction.get(1..).unwrap().parse::<i32>().unwrap() {
+            for i in 1..direction.get(1..).unwrap().parse::<i32>().unwrap()+1 {
                 directions.push(
                     Point { 
                         x: start_point.x+i, 
@@ -58,7 +56,7 @@ fn parse_direction(start_point: &Point, direction: &str) -> Vec<Point> {
             }
         },
         'D' => {
-            for i in 1..direction.get(1..).unwrap().parse::<i32>().unwrap() {
+            for i in 1..direction.get(1..).unwrap().parse::<i32>().unwrap()+1 {
                 directions.push(
                     Point { 
                         x: start_point.x, 
@@ -68,7 +66,7 @@ fn parse_direction(start_point: &Point, direction: &str) -> Vec<Point> {
             }
         },
         'L' => {
-            for i in 1..direction.get(1..).unwrap().parse::<i32>().unwrap() {
+            for i in 1..direction.get(1..).unwrap().parse::<i32>().unwrap()+1 {
                 directions.push(
                     Point { 
                         x: start_point.x-i, 
@@ -78,7 +76,7 @@ fn parse_direction(start_point: &Point, direction: &str) -> Vec<Point> {
             }
         },
         'U' => {
-            for i in 1..direction.get(1..).unwrap().parse::<i32>().unwrap() {
+            for i in 1..direction.get(1..).unwrap().parse::<i32>().unwrap()+1 {
                 directions.push(
                     Point { 
                         x: start_point.x, 
