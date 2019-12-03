@@ -12,6 +12,9 @@ fn main() -> io::Result<()> {
     let reader = BufReader::new(file);
 
     let mut paths: Vec<Vec<Point>> = Vec::new();
+    let mut intersections: Vec<Point> = Vec::new();
+
+    let mut min = core::i32::MAX;
 
     for line in reader.lines() {
         paths.push(parse_path(&line?));
@@ -19,16 +22,39 @@ fn main() -> io::Result<()> {
 
     for point_a in paths[0].clone() {
         for point_b in paths[1].clone() {
-            if point_a == point_b {
+            if ((point_a == point_b) && (point_a != Point {x: 0, y: 0})) {
                 println!("{:?}", point_a);
+                intersections.push(point_a.clone());
             }
         }
     }
+
+    for point in intersections {
+        let sum = point.x.abs() + point.y.abs();
+        if sum < min {
+            min = sum;
+        }
+    }
+
+    println!("{:?}", min);
 
     Ok(())
 }
 
 fn parse_path(path: &String) -> Vec<Point> {
+    let mut directions: Vec<&str> = path.split(',').collect();
+    let mut path: Vec<Point> = Vec::new();
+
+    path.push(Point {x: 0, y: 0});
+
+    for direction in directions {
+        path.append(&mut parse_direction(&path.last().unwrap(), &direction));
+    }
+
+    path
+}
+
+fn parse_path_intersection(path: &String) -> Vec<Point> {
     let mut directions: Vec<&str> = path.split(',').collect();
     let mut path: Vec<Point> = Vec::new();
 
