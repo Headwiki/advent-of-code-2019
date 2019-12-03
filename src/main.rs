@@ -20,9 +20,9 @@ fn main() -> io::Result<()> {
         paths.push(parse_path(&line?));
     }
 
-    for point_a in paths[0].clone() {
-        for point_b in paths[1].clone() {
-            if ((point_a == point_b) && (point_a != Point {x: 0, y: 0})) {
+    for point_a in paths[0].iter() {
+        for point_b in paths[1].iter() {
+            if ((point_a == point_b) && (point_a != &Point {x: 0, y: 0})) {
                 println!("{:?}", point_a);
                 intersections.push(point_a.clone());
             }
@@ -42,19 +42,6 @@ fn main() -> io::Result<()> {
 }
 
 fn parse_path(path: &String) -> Vec<Point> {
-    let mut directions: Vec<&str> = path.split(',').collect();
-    let mut path: Vec<Point> = Vec::new();
-
-    path.push(Point {x: 0, y: 0});
-
-    for direction in directions {
-        path.append(&mut parse_direction(&path.last().unwrap(), &direction));
-    }
-
-    path
-}
-
-fn parse_path_intersection(path: &String) -> Vec<Point> {
     let mut directions: Vec<&str> = path.split(',').collect();
     let mut path: Vec<Point> = Vec::new();
 
