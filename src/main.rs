@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::{self, prelude::*, BufReader};
+use std::collections::HashMap;
 
 fn main() -> io::Result<()> {
 
@@ -7,7 +8,8 @@ fn main() -> io::Result<()> {
     let reader = BufReader::new(file);
 
     for line in reader.lines() {
-        println!("{:?}", find_valid_numbers(&line?).len());
+        let valid_numbers = find_valid_numbers(&line?);
+        println!("{:?}", find_valid_numbers_again(&valid_numbers).len());
     }
 
     Ok(())
@@ -53,4 +55,34 @@ fn is_valid_number(number: u32) -> bool {
     }
 
     flag_double && flag_never_decrease
+}
+
+fn find_valid_numbers_again(numbers: &Vec<u32>) -> Vec<u32> {
+
+    let mut valid_numbers: Vec<u32> = Vec::new();
+
+    for number in numbers {
+        let stringed_number = number.to_string();
+        let mut frequency: HashMap<String, u32> = HashMap::new();
+
+        for c in stringed_number.chars() {
+            *frequency.entry(c.to_string()).or_insert(0) += 1;
+        }
+        let mut count_frequency: Vec<(&String, &u32)> = frequency.iter().collect();
+        count_frequency.sort_by(|a, b| b.1.cmp(a.1));
+
+        if count_frequency.len() > 0 {
+            if *count_frequency[0].1 == 2 {
+                valid_numbers.push(*number);
+            }
+        }
+
+        if count_frequency.len() > 1 {
+            if *count_frequency[1].1 == 2 && (*count_frequency[0].1 > *count_frequency[1].1) {
+                valid_numbers.push(*number);
+            }
+        }
+
+    }
+    valid_numbers
 }
