@@ -20,13 +20,16 @@ fn execute_intcode (mut intcode: Vec<i32>) -> Vec<i32> {
     let mut instruction_position = 0;
 
     loop{
-        let instruction = intcode[instruction_position];
+        let mut instruction = intcode[instruction_position];
+        println!("Instruction Position : {:?}", instruction_position);
+        println!("Instruction: {:?}", instruction);
+        let mut jumped = false;
 
         // parse instruction
         let instruction_vec: Vec<u32> = 
-            instruction.to_string().
-                chars().
-                map(|x| x.to_digit(10).unwrap())
+            instruction.to_string()
+                .chars()
+                .map(|x| x.to_digit(10).unwrap())
                 .collect();
         
         let instruction_length = instruction_vec.len();
@@ -47,25 +50,31 @@ fn execute_intcode (mut intcode: Vec<i32>) -> Vec<i32> {
         // Match operation mode
         match operation_mode {
             1 => {
+                // add 
                 let mut first_pos = 0;
                 let mut second_pos = 0;
                 let result_pos = intcode[instruction_position+3] as usize;
 
                 if parameter_mode_one == 0 {
                     first_pos = intcode[intcode[instruction_position+1] as usize];
+                    println!("adding as pos: {}", first_pos);
                 } else {
                     first_pos = intcode[instruction_position+1];
+                    println!("adding as im: {}", first_pos);
                 }
 
                 if parameter_mode_two == 0 {
                     second_pos = intcode[intcode[instruction_position+2] as usize];
+                    println!("adding as pos: {}", second_pos);
                 } else {
                     second_pos = intcode[instruction_position+2];
+                    println!("adding as im: {}", second_pos);
                 }
-
+                println!("sum in pos: {}", intcode[result_pos]);
                 intcode[result_pos] = first_pos + second_pos;
             },
             2 => {
+                // multiply
                 let mut first_pos = 0;
                 let mut second_pos = 0;
                 let result_pos = intcode[instruction_position+3] as usize;
@@ -85,6 +94,7 @@ fn execute_intcode (mut intcode: Vec<i32>) -> Vec<i32> {
                 intcode[result_pos] = first_pos * second_pos;
             },
             3 => {
+                // input
                 let first_pos = intcode[instruction_position+1] as usize;
                 let mut input = String::new();
                 println!("Enter input: ");
@@ -93,19 +103,126 @@ fn execute_intcode (mut intcode: Vec<i32>) -> Vec<i32> {
                 input.pop();    // remove trailing newline
                 input.pop();
                 intcode[first_pos] = input.parse::<i32>().unwrap();
+                println!("Input value: {}", intcode[first_pos]);
             },
             4 => {
-                let first_pos = intcode[instruction_position+1] as usize;
-                println!("Output: {}", intcode[first_pos]);
+                //output
+                let mut first_pos = 0;
+
+                if parameter_mode_one == 0 {
+                    first_pos = intcode[intcode[instruction_position+1] as usize];
+                } else {
+                    first_pos = intcode[instruction_position+1];
+                }
+                println!("Output: {}", first_pos);
+            },
+            5 => {
+                // jump-if-true
+                let mut first_pos = 0;
+                let mut second_pos = 0;
+
+                if parameter_mode_one == 0 {
+                    first_pos = intcode[intcode[instruction_position+1] as usize];
+                    println!("First - JIT as pos: {}", first_pos);
+                } else {
+                    first_pos = intcode[instruction_position+1];
+                    println!("First - JIT as im: {}", first_pos);
+                }
+
+                if first_pos != 0 {
+                    if parameter_mode_two == 0 {
+                        second_pos = intcode[intcode[instruction_position+2] as usize];
+                        println!("Second - JIT as pos: {}", second_pos);
+                    } else {
+                        second_pos = intcode[instruction_position+2];
+                        println!("Second - JIT as im: {}", second_pos);
+                    }
+                    instruction_position = second_pos as usize;
+                    println!("instruction new: {:?}", instruction_position);
+                    jumped = true;
+                }
+            },
+            6 => {
+                // jump-if-false
+                let mut first_pos = 0;
+                let mut second_pos = 0;
+
+                if parameter_mode_one == 0 {
+                    first_pos = intcode[intcode[instruction_position+1] as usize];
+                } else {
+                    first_pos = intcode[instruction_position+1];
+                }
+                if first_pos == 0 {
+                    if parameter_mode_two == 0 {
+                        second_pos = intcode[intcode[instruction_position+2] as usize];
+                    } else {
+                        second_pos = intcode[instruction_position+2];
+                    }
+                    instruction_position = second_pos as usize;
+                    println!("instruction new: {:?}", instruction_position);
+                    jumped = true;
+                }
+            },
+            7 => {
+                // less-than
+                let mut first_pos = 0;
+                let mut second_pos = 0;
+                let result_pos = intcode[instruction_position+3] as usize;
+
+                if parameter_mode_one == 0 {
+                    first_pos = intcode[intcode[instruction_position+1] as usize];
+                } else {
+                    first_pos = intcode[instruction_position+1];
+                }
+
+                if parameter_mode_two == 0 {
+                    second_pos = intcode[intcode[instruction_position+2] as usize];
+                } else {
+                    second_pos = intcode[instruction_position+2];
+                }
+
+                if first_pos < second_pos {
+                    intcode[result_pos] = 1;
+                } else {
+                    intcode[result_pos] = 0;
+                }
+            },
+            8 => {
+                // equal
+                let mut first_pos = 0;
+                let mut second_pos = 0;
+                let result_pos = intcode[instruction_position+3] as usize;
+
+                if parameter_mode_one == 0 {
+                    first_pos = intcode[intcode[instruction_position+1] as usize];
+                } else {
+                    first_pos = intcode[instruction_position+1];
+                }
+
+                if parameter_mode_two == 0 {
+                    second_pos = intcode[intcode[instruction_position+2] as usize];
+                } else {
+                    second_pos = intcode[instruction_position+2];
+                }
+
+                if first_pos == second_pos {
+                    intcode[result_pos] = 1;
+                } else {
+                    intcode[result_pos] = 0;
+                }
             },
             99 => { return intcode },
             _ => { panic!("Unknown operation code!"); }
         }
 
-        if (operation_mode == 3) ||(operation_mode == 4) {
-            instruction_position += 2;
-        } else {
-            instruction_position += 4;
+        if !jumped {
+            if (operation_mode == 3) ||(operation_mode == 4) {
+                instruction_position += 2;
+            } else if (operation_mode == 5) || (operation_mode == 6) {
+                instruction_position += 3;
+            } else {
+                instruction_position += 4;
+            }
         }
     }
 
