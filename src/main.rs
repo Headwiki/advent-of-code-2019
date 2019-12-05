@@ -21,8 +21,6 @@ fn execute_intcode (mut intcode: Vec<i32>) -> Vec<i32> {
 
     loop{
         let mut instruction = intcode[instruction_position];
-        println!("Instruction Position : {:?}", instruction_position);
-        println!("Instruction: {:?}", instruction);
         let mut jumped = false;
 
         // parse instruction
@@ -57,20 +55,15 @@ fn execute_intcode (mut intcode: Vec<i32>) -> Vec<i32> {
 
                 if parameter_mode_one == 0 {
                     first_pos = intcode[intcode[instruction_position+1] as usize];
-                    println!("adding as pos: {}", first_pos);
                 } else {
                     first_pos = intcode[instruction_position+1];
-                    println!("adding as im: {}", first_pos);
                 }
 
                 if parameter_mode_two == 0 {
                     second_pos = intcode[intcode[instruction_position+2] as usize];
-                    println!("adding as pos: {}", second_pos);
                 } else {
                     second_pos = intcode[instruction_position+2];
-                    println!("adding as im: {}", second_pos);
                 }
-                println!("sum in pos: {}", intcode[result_pos]);
                 intcode[result_pos] = first_pos + second_pos;
             },
             2 => {
@@ -103,7 +96,6 @@ fn execute_intcode (mut intcode: Vec<i32>) -> Vec<i32> {
                 input.pop();    // remove trailing newline
                 input.pop();
                 intcode[first_pos] = input.parse::<i32>().unwrap();
-                println!("Input value: {}", intcode[first_pos]);
             },
             4 => {
                 //output
@@ -123,22 +115,17 @@ fn execute_intcode (mut intcode: Vec<i32>) -> Vec<i32> {
 
                 if parameter_mode_one == 0 {
                     first_pos = intcode[intcode[instruction_position+1] as usize];
-                    println!("First - JIT as pos: {}", first_pos);
                 } else {
                     first_pos = intcode[instruction_position+1];
-                    println!("First - JIT as im: {}", first_pos);
                 }
 
                 if first_pos != 0 {
                     if parameter_mode_two == 0 {
                         second_pos = intcode[intcode[instruction_position+2] as usize];
-                        println!("Second - JIT as pos: {}", second_pos);
                     } else {
                         second_pos = intcode[instruction_position+2];
-                        println!("Second - JIT as im: {}", second_pos);
                     }
                     instruction_position = second_pos as usize;
-                    println!("instruction new: {:?}", instruction_position);
                     jumped = true;
                 }
             },
@@ -159,7 +146,6 @@ fn execute_intcode (mut intcode: Vec<i32>) -> Vec<i32> {
                         second_pos = intcode[instruction_position+2];
                     }
                     instruction_position = second_pos as usize;
-                    println!("instruction new: {:?}", instruction_position);
                     jumped = true;
                 }
             },
