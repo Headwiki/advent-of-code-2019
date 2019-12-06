@@ -31,17 +31,28 @@ impl Planet {
         println!("Planet: {} end counter {}",self.id, counter);
         counter + level
     }
+
+    fn place(&mut self, planet: Planet) {
+
+    }
 }
 
 fn main() -> io::Result<()> {
     let file = File::open("input")?;
     let reader = BufReader::new(file);
 
+    let mut first_planet_is_set = false;
+    let mut first_planet = Planet::new("0");
+
     for line in reader.lines() {
-        println!("{}", line?);
+        if !first_planet_is_set {
+            first_planet = Planet::new(line?);
+        } else {
+            
+        }
     }
 
-    let mut com_planet = Planet::new("COM".to_string());
+/*     let mut com_planet = Planet::new("COM".to_string());
     let mut b_planet = Planet::new("B".to_string());
     let c_planet = Planet::new("C".to_string());
     let d_planet = Planet::new("D".to_string());
@@ -50,7 +61,10 @@ fn main() -> io::Result<()> {
     com_planet.add_planets_orbiting(b_planet);
     com_planet.add_planets_orbiting(c_planet);
     com_planet.planets_orbiting[0].add_planets_orbiting(d_planet);
-    com_planet.planets_orbiting[0].add_planets_orbiting(e_planet);
+    com_planet.planets_orbiting[0].add_planets_orbiting(e_planet); */
+
+
+
 
     println!("COM: {:?}", com_planet.count(0));
 
