@@ -3,15 +3,15 @@ use std::io::{self, prelude::*, BufReader};
 
 #[derive(Debug, Clone)]
 struct Planet {
-    id: String,
-    planets_orbiting: Vec<Box<Planet>>
+    id: Box<String>,
+    planets_orbiting: Box<Vec<Box<Planet>>>
 }
 
 impl Planet {
     pub fn new(data: String) -> Planet {
         Planet {
-            id: data,
-            planets_orbiting: Vec::new()
+            id: Box::new(data),
+            planets_orbiting: Box::new(Vec::new())
         }
     }
 
@@ -19,21 +19,29 @@ impl Planet {
         self.planets_orbiting.push(Box::new(planet));
     }
 
-    fn count(&mut self, level: u32) -> u32 {
+    fn count(self, level: u32) -> u32 {
 
         let mut counter: u32 = 0;
-        println!("Planet: {} start counter {}",self.id, counter);
+        println!("Planet: {} start counter {}", self.id, counter);
 
         println!("Planet: {}, Orbiting planets: {:?}", self.id, self.planets_orbiting);
-        for planet in self.planets_orbiting.clone() {
-            counter += planet.clone().count(level+1);
+        for planet in self.planets_orbiting.into_iter() {
+            counter += planet.count(level+1);
         }
-        println!("Planet: {} end counter {}",self.id, counter);
+        println!("Planet: {} end counter {}", self.id, counter);
         counter + level
     }
 
-    fn place(&mut self, planet: Planet) {
-
+    fn insert(&mut self, new_planet: Planet, dest_planet: Box<Planet>) -> Box<Planet> {
+        if self.id == dest_planet.id {
+            println!("Found {:?} in {:?}", dest_planet, self.id);
+            self.add_planets_orbiting(new_planet);
+        } else {
+            for planet in self.planets_orbiting.iter() {
+                planet.insert(new_planet.clone(), dest_planet.clone());
+            }
+        }
+        dest_planet
     }
 }
 
@@ -42,16 +50,22 @@ fn main() -> io::Result<()> {
     let reader = BufReader::new(file);
 
     let mut first_planet_is_set = false;
-    let mut first_planet = Planet::new("0");
+    let mut first_planet = Planet::new("0".to_string());
 
-    for line in reader.lines() {
+     for line in reader.lines() {
         if !first_planet_is_set {
-            first_planet = Planet::new(line?);
+            let planets: Vec<String> = line.unwrap().split(')').map(|s| s.to_string()).collect();
+            first_planet = Planet::new(planets[0].clone());
+            first_planet.add_planets_orbiting(Planet::new(planets[1].clone()));
+            first_planet_is_set = true;
         } else {
-            
+            let planets: Vec<String> = line.unwrap().split(')').map(|s| s.to_string()).collect();
+            // find planet planets[0] and insert planets[1]
+            first_planet.insert(Planet::new(planets[1].clone()), Box::new(Planet::new(planets[0].clone())));
         }
-    }
+    } 
 
+    println!("COM: {:?}", first_planet.count(0));
 /*     let mut com_planet = Planet::new("COM".to_string());
     let mut b_planet = Planet::new("B".to_string());
     let c_planet = Planet::new("C".to_string());
@@ -61,12 +75,12 @@ fn main() -> io::Result<()> {
     com_planet.add_planets_orbiting(b_planet);
     com_planet.add_planets_orbiting(c_planet);
     com_planet.planets_orbiting[0].add_planets_orbiting(d_planet);
-    com_planet.planets_orbiting[0].add_planets_orbiting(e_planet); */
+    com_planet.planets_orbiting[0].add_planets_orbiting(e_planet);  
 
 
 
 
-    println!("COM: {:?}", com_planet.count(0));
+    println!("COM: {:?}", com_planet.count(0)); */
 
     Ok(())
 
