@@ -3,15 +3,15 @@ use std::io::{self, prelude::*, BufReader};
 
 #[derive(Debug, Clone)]
 struct Planet {
-    id: Box<String>,
-    planets_orbiting: Box<Vec<Box<Planet>>>
+    id: String,
+    planets_orbiting: Vec<Box<Planet>>
 }
 
 impl Planet {
     pub fn new(data: String) -> Planet {
         Planet {
-            id: Box::new(data),
-            planets_orbiting: Box::new(Vec::new())
+            id: data,
+            planets_orbiting: Vec::new()
         }
     }
 
@@ -19,13 +19,13 @@ impl Planet {
         self.planets_orbiting.push(Box::new(planet));
     }
 
-    fn count(self, level: u32) -> u32 {
+    fn count(&self, level: u32) -> u32 {
 
         let mut counter: u32 = 0;
         println!("Planet: {} start counter {}", self.id, counter);
 
         println!("Planet: {}, Orbiting planets: {:?}", self.id, self.planets_orbiting);
-        for planet in self.planets_orbiting.into_iter() {
+        for planet in self.planets_orbiting.iter() {
             counter += planet.count(level+1);
         }
         println!("Planet: {} end counter {}", self.id, counter);
@@ -37,12 +37,17 @@ impl Planet {
             println!("Found {:?} in {:?}", dest_planet, self.id);
             self.add_planets_orbiting(new_planet);
         } else {
-            for planet in self.planets_orbiting.iter() {
+            for planet in self.planets_as_mut() {
                 planet.insert(new_planet.clone(), dest_planet.clone());
             }
         }
         dest_planet
     }
+
+    fn planets_as_mut(&mut self) -> &mut Vec<Box<Planet>> {
+        &mut self.planets_orbiting
+    }
+
 }
 
 fn main() -> io::Result<()> {
