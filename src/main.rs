@@ -4,13 +4,15 @@ use std::io::{self, prelude::*, BufReader};
 #[derive(Debug, Clone)]
 struct Planet {
     id: String,
+    parent: Box<Planet>,
     planets_orbiting: Vec<Box<Planet>>,
 }
 
 impl Planet {
-    pub fn new(data: String) -> Planet {
+    pub fn new(data: String, parent: Box<Planet>) -> Planet {
         Planet {
             id: data,
+            parent: parent,
             planets_orbiting: Vec::new(),
         }
     }
