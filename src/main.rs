@@ -10,7 +10,12 @@ struct Image {
 
 #[derive(Debug)]
 struct Layer {
-    pixels: Vec<u32>,
+    pixels: Vec<Row>,
+}
+
+#[derive(Debug, Clone)]
+struct Row {
+    row: Vec<u32>,
 }
 
 impl Image {
@@ -23,41 +28,54 @@ impl Image {
     }
 
     fn create_layer(&mut self, numbers: String) {
-        self.layers.push(Layer {
-            pixels: numbers
-                .chars()
-                .map(|n| n.to_string().parse::<u32>().unwrap())
-                .collect(),
-        });
+        let mut new_layer = Layer { pixels: Vec::new() };
+
+        let mut z = numbers.chars().peekable();
+        while z.peek().is_some() {
+            let chunk: String = z.by_ref().take(self.width as usize).collect();
+            new_layer.pixels.push(Row {
+                row: chunk
+                    .chars()
+                    .map(|n| n.to_string().parse::<u32>().unwrap())
+                    .collect(),
+            });
+        }
+        self.layers.push(new_layer);
     }
 
-    fn layer_least_zeroes(&self) -> u32 {
-        let mut num_of_zeroes = core::u32::MAX;
-        let mut layer_num = 0;
+    fn print_image(&self) -> Layer {
+        let mut new_layer = create_empty_layer();
 
-        for (i, layer) in self.layers.iter().enumerate() {
-            let new = layer.pixels.iter().filter(|n| **n == 0).count();
-            if (new as u32) < num_of_zeroes {
-                num_of_zeroes = new as u32;
-                layer_num = i;
+        for layer in self.layers.iter() {
+            for (i, row) in layer.pixels.iter().enumerate() {
+                for (k, pixel) in row.row.iter().enumerate() {
+                    if (new_layer.pixels[i].row[k] == 0) || (new_layer.pixels[i].row[k] == 1) {
+                    } else {
+                        if *pixel < new_layer.pixels[i].row[k] {
+                            new_layer.pixels[i].row[k] = *pixel
+                        }
+                    }
+                }
             }
         }
 
-        layer_num as u32
+        new_layer
+    }
+}
+
+fn create_empty_layer() -> Layer {
+    let mut new_layer = Layer { pixels: Vec::new() };
+    let new_row = Row {
+        row: vec![
+            2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        ],
+    };
+
+    for x in 0..6 {
+        new_layer.pixels.push(new_row.clone());
     }
 
-    fn find_layer_sum(&self, layer: u32) -> u32 {
-        (self.layers[layer as usize]
-            .pixels
-            .iter()
-            .filter(|n| **n == 1)
-            .count()
-            * self.layers[layer as usize]
-                .pixels
-                .iter()
-                .filter(|n| **n == 2)
-                .count()) as u32
-    }
+    new_layer
 }
 
 fn main() -> io::Result<()> {
@@ -81,7 +99,7 @@ fn main() -> io::Result<()> {
         image.create_layer(chunk);
     }
 
-    println!("{:?}", image.find_layer_sum(image.layer_least_zeroes()));
+    println!("{:?}", image.print_image());
 
     Ok(())
 }
