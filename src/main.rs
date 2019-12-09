@@ -5,213 +5,206 @@ fn main() -> io::Result<()> {
     let file = File::open("input")?;
     let reader = BufReader::new(file);
 
-    let mut intcode: Vec<i32> = Vec::new();
+    let mut intcode = Intcode::new();
 
     for line in reader.lines() {
-        intcode = line.unwrap().split(',').map(|i| i.parse::<i32>().unwrap()).collect();
+        intcode.data = line
+            .unwrap()
+            .split(',')
+            .map(|i| i.parse::<i32>().unwrap())
+            .collect();
     }
 
-    execute_intcode(intcode);
-    //println!("{:?}", brute_intcodes(&intcodes));
+    intcode.parse();
+
     Ok(())
 }
 
-fn execute_intcode (mut intcode: Vec<i32>) -> Vec<i32> {
-    let mut instruction_position = 0;
+struct Intcode {
+    data: Vec<i32>,
+    instruction_pointer: u32,
+    current_instruction: Instruction,
+    jumped: bool,
+}
 
-    loop{
-        let mut instruction = intcode[instruction_position];
-        let mut jumped = false;
-
-        // parse instruction
-        let instruction_vec: Vec<u32> = 
-            instruction.to_string()
-                .chars()
-                .map(|x| x.to_digit(10).unwrap())
-                .collect();
-        
-        let instruction_length = instruction_vec.len();
-        
-        let operation_mode = instruction % 100;
-
-        let mut parameter_mode_one = 0;
-        let mut parameter_mode_two = 0;
-
-        if instruction_length == 4 {
-            parameter_mode_two = instruction_vec[0];
-            parameter_mode_one = instruction_vec[1];
-
-        } else if instruction_length == 3 {
-            parameter_mode_one = instruction_vec[0];
+impl Intcode {
+    pub fn new() -> Self {
+        Intcode {
+            data: Vec::new(),
+            instruction_pointer: 0,
+            current_instruction: Instruction {
+                first_parameter: 0,
+                second_parameter: 0,
+                third_parameter: 0,
+                operation_mode: 0,
+            },
+            jumped: false,
         }
+    }
 
-        // Match operation mode
-        match operation_mode {
-            1 => {
-                // add 
-                let mut first_pos = 0;
-                let mut second_pos = 0;
-                let result_pos = intcode[instruction_position+3] as usize;
-
-                if parameter_mode_one == 0 {
-                    first_pos = intcode[intcode[instruction_position+1] as usize];
-                } else {
-                    first_pos = intcode[instruction_position+1];
-                }
-
-                if parameter_mode_two == 0 {
-                    second_pos = intcode[intcode[instruction_position+2] as usize];
-                } else {
-                    second_pos = intcode[instruction_position+2];
-                }
-                intcode[result_pos] = first_pos + second_pos;
-            },
-            2 => {
-                // multiply
-                let mut first_pos = 0;
-                let mut second_pos = 0;
-                let result_pos = intcode[instruction_position+3] as usize;
-
-                if parameter_mode_one == 0 {
-                    first_pos = intcode[intcode[instruction_position+1] as usize];
-                } else {
-                    first_pos = intcode[instruction_position+1];
-                }
-
-                if parameter_mode_two == 0 {
-                    second_pos = intcode[intcode[instruction_position+2] as usize];
-                } else {
-                    second_pos = intcode[instruction_position+2];
-                }
-
-                intcode[result_pos] = first_pos * second_pos;
-            },
-            3 => {
-                // input
-                let first_pos = intcode[instruction_position+1] as usize;
-                let mut input = String::new();
-                println!("Enter input: ");
-
-                std::io::stdin().lock().read_line(&mut input).unwrap();
-                input.pop();    // remove trailing newline
-                input.pop();
-                intcode[first_pos] = input.parse::<i32>().unwrap();
-            },
-            4 => {
-                //output
-                let mut first_pos = 0;
-
-                if parameter_mode_one == 0 {
-                    first_pos = intcode[intcode[instruction_position+1] as usize];
-                } else {
-                    first_pos = intcode[instruction_position+1];
-                }
-                println!("Output: {}", first_pos);
-            },
-            5 => {
-                // jump-if-true
-                let mut first_pos = 0;
-                let mut second_pos = 0;
-
-                if parameter_mode_one == 0 {
-                    first_pos = intcode[intcode[instruction_position+1] as usize];
-                } else {
-                    first_pos = intcode[instruction_position+1];
-                }
-
-                if first_pos != 0 {
-                    if parameter_mode_two == 0 {
-                        second_pos = intcode[intcode[instruction_position+2] as usize];
-                    } else {
-                        second_pos = intcode[instruction_position+2];
-                    }
-                    instruction_position = second_pos as usize;
-                    jumped = true;
-                }
-            },
-            6 => {
-                // jump-if-false
-                let mut first_pos = 0;
-                let mut second_pos = 0;
-
-                if parameter_mode_one == 0 {
-                    first_pos = intcode[intcode[instruction_position+1] as usize];
-                } else {
-                    first_pos = intcode[instruction_position+1];
-                }
-                if first_pos == 0 {
-                    if parameter_mode_two == 0 {
-                        second_pos = intcode[intcode[instruction_position+2] as usize];
-                    } else {
-                        second_pos = intcode[instruction_position+2];
-                    }
-                    instruction_position = second_pos as usize;
-                    jumped = true;
-                }
-            },
-            7 => {
-                // less-than
-                let mut first_pos = 0;
-                let mut second_pos = 0;
-                let result_pos = intcode[instruction_position+3] as usize;
-
-                if parameter_mode_one == 0 {
-                    first_pos = intcode[intcode[instruction_position+1] as usize];
-                } else {
-                    first_pos = intcode[instruction_position+1];
-                }
-
-                if parameter_mode_two == 0 {
-                    second_pos = intcode[intcode[instruction_position+2] as usize];
-                } else {
-                    second_pos = intcode[instruction_position+2];
-                }
-
-                if first_pos < second_pos {
-                    intcode[result_pos] = 1;
-                } else {
-                    intcode[result_pos] = 0;
-                }
-            },
-            8 => {
-                // equal
-                let mut first_pos = 0;
-                let mut second_pos = 0;
-                let result_pos = intcode[instruction_position+3] as usize;
-
-                if parameter_mode_one == 0 {
-                    first_pos = intcode[intcode[instruction_position+1] as usize];
-                } else {
-                    first_pos = intcode[instruction_position+1];
-                }
-
-                if parameter_mode_two == 0 {
-                    second_pos = intcode[intcode[instruction_position+2] as usize];
-                } else {
-                    second_pos = intcode[instruction_position+2];
-                }
-
-                if first_pos == second_pos {
-                    intcode[result_pos] = 1;
-                } else {
-                    intcode[result_pos] = 0;
-                }
-            },
-            99 => { return intcode },
-            _ => { panic!("Unknown operation code!"); }
-        }
-
-        if !jumped {
-            if (operation_mode == 3) ||(operation_mode == 4) {
-                instruction_position += 2;
-            } else if (operation_mode == 5) || (operation_mode == 6) {
-                instruction_position += 3;
+    fn update_jumped(&mut self) {
+        if !self.jumped {
+            if (self.current_instruction.operation_mode == 3) || (self.current_instruction.operation_mode == 4) {
+                self.instruction_pointer += 2;
+            } else if (self.current_instruction.operation_mode == 5) || (self.current_instruction.operation_mode == 6) {
+                self.instruction_pointer += 3;
             } else {
-                instruction_position += 4;
+                self.instruction_pointer += 4;
             }
         }
     }
 
+    fn parse(&mut self) {
+        loop {
+            self.current_instruction =
+                Instruction::new(
+                    self.data[self.instruction_pointer as usize] as u32
+                );
+
+            self.jumped = false;
+
+            match self.current_instruction.operation_mode {
+                1 => {
+                    // add 
+                    let result_pos = self.data[(self.instruction_pointer + 3 ) as usize] as usize;
+                    self.data[result_pos] = self.current_instruction.get_parameter_value(1, &self.data, self.instruction_pointer) 
+                        + self.current_instruction.get_parameter_value(2, &self.data, self.instruction_pointer);
+                },
+                2 => {
+                    // mul
+                    let result_pos = self.data[(self.instruction_pointer + 3 ) as usize] as usize;
+                    self.data[result_pos] = self.current_instruction.get_parameter_value(1, &self.data, self.instruction_pointer) 
+                        * self.current_instruction.get_parameter_value(2, &self.data, self.instruction_pointer);
+                },
+                3 => {
+                    // input
+                    let first_pos = self.data[(self.instruction_pointer + 1) as usize] as usize;
+                    let mut input = String::new();
+                    println!("Enter input: ");
+
+                    std::io::stdin().lock().read_line(&mut input).unwrap();
+                    input.pop(); // remove trailing newline
+                    input.pop();
+                    self.data[first_pos] = input.parse::<i32>().unwrap();
+                },
+                4 => {
+                    // output
+                    println!("Output: {}", self.current_instruction.get_parameter_value(1, &self.data, self.instruction_pointer));
+                },
+                5 => {
+                    // jump-if-true
+                    if self.current_instruction.get_parameter_value(1, &self.data, self.instruction_pointer) != 0 {
+                        self.instruction_pointer = self.current_instruction.get_parameter_value(2, &self.data, self.instruction_pointer) as u32;
+                        self.jumped = true;
+                    }
+                },
+                6 => {
+                    // jump-if-false
+                    if self.current_instruction.get_parameter_value(1, &self.data, self.instruction_pointer) == 0 {
+                        self.instruction_pointer = (self.current_instruction.get_parameter_value(2, &self.data, self.instruction_pointer)) as u32;
+                        self.jumped = true;
+                    }
+                },
+                7 => {
+                    // less-than
+                    let result_pos = self.data[(self.instruction_pointer + 3) as usize] as usize;
+
+                    if self.current_instruction.get_parameter_value(1, &self.data, self.instruction_pointer) 
+                        < self.current_instruction.get_parameter_value(2, &self.data, self.instruction_pointer) {
+                        self.data[result_pos] = 1;
+                    } else {
+                        self.data[result_pos] = 0;
+                    }
+                },
+                8 => {
+                    // equal
+                    let result_pos = self.data[(self.instruction_pointer + 3) as usize] as usize;
+
+                    if self.current_instruction.get_parameter_value(1, &self.data, self.instruction_pointer) 
+                        == self.current_instruction.get_parameter_value(2, &self.data, self.instruction_pointer) {
+                        self.data[result_pos] = 1;
+                    } else {
+                        self.data[result_pos] = 0;
+                    }
+                },
+                99 => return,
+                _ => {
+                    panic!("Unknown operation code!");
+                }
+            }
+
+            self.update_jumped();
+        }
+    }
+}
+
+struct Instruction {
+    first_parameter: u32,
+    second_parameter: u32,
+    third_parameter: u32,
+    operation_mode: u32,
+}
+
+impl Instruction {
+    pub fn new(number: u32) -> Self {
+        let vec = number_to_vec(number);
+        let mut parameter_mode_one = 0;
+        let mut parameter_mode_two = 0;
+        let mut parameter_mode_three = 0;
+
+        if vec.len() == 5 {
+            parameter_mode_three = vec[0];
+            parameter_mode_two = vec[1];
+            parameter_mode_one = vec[2];
+        } else if vec.len() == 4 {
+            parameter_mode_two = vec[0];
+            parameter_mode_one = vec[1];
+        } else if vec.len() == 3 {
+            parameter_mode_one = vec[0];
+        }
+
+        Instruction {
+            first_parameter: parameter_mode_one,
+            second_parameter: parameter_mode_two,
+            third_parameter: parameter_mode_three,
+            operation_mode: (number % 100),
+        }
+    }
+
+    fn get_parameter_value(&mut self, index: u32, data: &Vec<i32>, instruction_pointer: u32) -> i32 {
+        match index {
+            1 => {
+                if self.first_parameter == 0 {
+                   return data[data[(instruction_pointer + 1) as usize] as usize];
+                } else {
+                    return data[(instruction_pointer + 1) as usize];
+                }
+            },
+            2 => {
+                if self.second_parameter == 0 {
+                   return data[data[(instruction_pointer + 2) as usize] as usize];
+                } else {
+                    return data[(instruction_pointer + 2) as usize];
+                }
+            },
+            3 => {
+                if self.third_parameter == 0 {
+                   return data[data[(instruction_pointer + 3) as usize] as usize];
+                } else {
+                    return data[(instruction_pointer + 3) as usize];
+                }
+            },
+            _ => { panic!("Unknown parameter number!"); }
+        }
+    }
+}
+
+fn number_to_vec(number: u32) -> Vec<u32> {
+    number
+        .to_string()
+        .chars()
+        .map(|x| x.to_digit(10).unwrap())
+        .collect::<Vec<u32>>()
 }
 
 /* fn brute_intcodes(intcode: &Vec<i32>) -> Vec<i32> {
