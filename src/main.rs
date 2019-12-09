@@ -56,28 +56,32 @@ impl Intcode {
 
     fn parse(&mut self) {
         loop {
+
+            // Set new instruction
             self.current_instruction =
                 Instruction::new(
                     self.data[self.instruction_pointer as usize] as u32
                 );
 
+            // Clear 'jumped'
             self.jumped = false;
 
+            // Match operation mode
             match self.current_instruction.operation_mode {
                 1 => {
-                    // add 
+                    // Add 
                     let result_pos = self.data[(self.instruction_pointer + 3 ) as usize] as usize;
                     self.data[result_pos] = self.current_instruction.get_parameter_value(1, &self.data, self.instruction_pointer) 
                         + self.current_instruction.get_parameter_value(2, &self.data, self.instruction_pointer);
                 },
                 2 => {
-                    // mul
+                    // Multiply
                     let result_pos = self.data[(self.instruction_pointer + 3 ) as usize] as usize;
                     self.data[result_pos] = self.current_instruction.get_parameter_value(1, &self.data, self.instruction_pointer) 
                         * self.current_instruction.get_parameter_value(2, &self.data, self.instruction_pointer);
                 },
                 3 => {
-                    // input
+                    // Read input
                     let first_pos = self.data[(self.instruction_pointer + 1) as usize] as usize;
                     let mut input = String::new();
                     println!("Enter input: ");
@@ -88,25 +92,25 @@ impl Intcode {
                     self.data[first_pos] = input.parse::<i32>().unwrap();
                 },
                 4 => {
-                    // output
+                    // Print output
                     println!("Output: {}", self.current_instruction.get_parameter_value(1, &self.data, self.instruction_pointer));
                 },
                 5 => {
-                    // jump-if-true
+                    // Jump-if-true
                     if self.current_instruction.get_parameter_value(1, &self.data, self.instruction_pointer) != 0 {
                         self.instruction_pointer = self.current_instruction.get_parameter_value(2, &self.data, self.instruction_pointer) as u32;
                         self.jumped = true;
                     }
                 },
                 6 => {
-                    // jump-if-false
+                    // Jump-if-false
                     if self.current_instruction.get_parameter_value(1, &self.data, self.instruction_pointer) == 0 {
                         self.instruction_pointer = (self.current_instruction.get_parameter_value(2, &self.data, self.instruction_pointer)) as u32;
                         self.jumped = true;
                     }
                 },
                 7 => {
-                    // less-than
+                    // Less-than
                     let result_pos = self.data[(self.instruction_pointer + 3) as usize] as usize;
 
                     if self.current_instruction.get_parameter_value(1, &self.data, self.instruction_pointer) 
@@ -117,7 +121,7 @@ impl Intcode {
                     }
                 },
                 8 => {
-                    // equal
+                    // Equal
                     let result_pos = self.data[(self.instruction_pointer + 3) as usize] as usize;
 
                     if self.current_instruction.get_parameter_value(1, &self.data, self.instruction_pointer) 
@@ -171,6 +175,8 @@ impl Instruction {
         }
     }
 
+    // Pass in parameter (eg. 1, 2 or 3) as index
+    //   Returns the stored data
     fn get_parameter_value(&mut self, index: u32, data: &Vec<i32>, instruction_pointer: u32) -> i32 {
         match index {
             1 => {
@@ -194,11 +200,12 @@ impl Instruction {
                     return data[(instruction_pointer + 3) as usize];
                 }
             },
-            _ => { panic!("Unknown parameter number!"); }
+            _ => { panic!("Unknown parameter index!"); }
         }
     }
 }
 
+// Helper function, split a number into a vec
 fn number_to_vec(number: u32) -> Vec<u32> {
     number
         .to_string()
