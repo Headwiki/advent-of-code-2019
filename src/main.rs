@@ -23,18 +23,44 @@ fn main() -> io::Result<()> {
     let border_coords: Vec<(u8, u8)> = create_border_coords(input.len() as u8, input[0].len() as u8);
     
     // Find all asteroids in input
-    for (i, row) in input.iter().enumerate() {
-        for (j, col) in row.iter().enumerate() {
+    for (j, row) in input.iter().enumerate() {
+        for (i, col) in row.iter().enumerate() {
             // If asteroid
             if *col == 35 {
-                //scan_line((i as i8, j as i8));
+                println!("Found asteroid: {:?}", (i as u8, j as u8));
+                // For each coordinate in border
+                for coord in border_coords.iter() {
+                    let targeted_coords = scan_line((i as i8, j as i8), (coord.0 as i8, coord.1 as i8));
+                    // For each coordinate in path from a to b
+                    for targeted_coord in targeted_coords.iter() {
+                        if *targeted_coord != (i as u8, j as u8) {
+                            // If asteroid
+                            let possible_asteroid = input[targeted_coord.1 as usize][targeted_coord.0 as usize];
+                            if possible_asteroid == 35 {
+                                println!("{:?} sees {:?}", (i as u8, j as u8), targeted_coord);
+                                let is_present = asteroids
+                                    .entry((i as u8, j as u8))
+                                    .or_insert(Vec::new())
+                                    .iter()
+                                    .any(|c| c == targeted_coord);
+
+                                if !is_present {
+                                    asteroids.entry((i as u8, j as u8))
+                                    .or_insert(Vec::new())
+                                    .push(*targeted_coord)
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
     // test
     //println!("{:?}", scan_line((0, 1), (6, 4)));
-    println!("{:?}", border_coords);
+    println!("{:?}", asteroids);
 
     Ok(())
 }
