@@ -68,22 +68,15 @@ impl Moons {
                     }
                 }
 
-
                 // Add old velocity
                 moon.x += self.moons[i].vel_x;
                 moon.y += self.moons[i].vel_y;
                 moon.z += self.moons[i].vel_z;
                 
                 // Calculate new velocity
-                //println!("self vel x: {}, new vel x: {}", self.moons[i].vel_x, moon.vel_x);
                 moon.vel_x = diff(self.moons[i].x, moon.x);
-                //println!("New Vel X: {}", moon.vel_x);
-               // println!("self vel y: {}, new vel y: {}", self.moons[i].vel_y, moon.vel_y);
                 moon.vel_y = diff(self.moons[i].y, moon.y);
-                //println!("New Vel Y: {}", moon.vel_y);
-                //println!("self vel z: {}, new vel z: {}", self.moons[i].vel_z, moon.vel_z);
                 moon.vel_z = diff(self.moons[i].z, moon.z);
-                //println!("New Vel Z: {}", moon.vel_z);
 
                 // Set updated data
                 moons.push(moon);
@@ -107,9 +100,6 @@ impl Moons {
 }
 
 fn diff(num1: i32, num2: i32) -> i32 {
-    // if both nums are positive or negative
-    //println!("Got num1: {}, num2: {}", num1, num2);
-
     if (num1 > -1) {
         if num2 < 0 {
             return num2 - num1
@@ -128,16 +118,6 @@ fn diff(num1: i32, num2: i32) -> i32 {
             return num1.abs() + num2
         }
     }
-
-    /* if num1 > 0 {
-        if num2 < 0 {
-            return num1 - num2
-        } else {
-            return num2 - num1
-        }
-    } else {
-        return num2 - num1
-    } */
 }
 
 fn main() -> io::Result<()> {
@@ -164,9 +144,6 @@ fn main() -> io::Result<()> {
         moons.step(1000);
         println!("{:?}", moons.moons);
         println!("{:?}", moons.total_energy());
-
-
-        
 
     Ok(())
 }
