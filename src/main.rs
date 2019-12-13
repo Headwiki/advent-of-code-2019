@@ -41,7 +41,7 @@ struct Moons {
 
 impl Moons {
     fn step(&mut self, steps: u32) {
-        for step in 0..steps {
+        for _step in 0..steps {
             let mut moons: Vec<Moon> = Vec::new();
             for i in 0..self.moons.len() {
                 let mut moon = self.moons[i].clone();
@@ -75,15 +75,15 @@ impl Moons {
                 moon.z += self.moons[i].vel_z;
                 
                 // Calculate new velocity
-                println!("self vel x: {}, new vel x: {}", self.moons[i].x, moon.vel_x);
+                //println!("self vel x: {}, new vel x: {}", self.moons[i].vel_x, moon.vel_x);
                 moon.vel_x = diff(self.moons[i].x, moon.x);
-                println!("New Vel X: {}", moon.vel_x);
-                println!("self vel y: {}, new vel y: {}", self.moons[i].y, moon.vel_y);
+                //println!("New Vel X: {}", moon.vel_x);
+               // println!("self vel y: {}, new vel y: {}", self.moons[i].vel_y, moon.vel_y);
                 moon.vel_y = diff(self.moons[i].y, moon.y);
-                println!("New Vel Y: {}", moon.vel_y);
-                println!("self vel z: {}, new vel z: {}", self.moons[i].z, moon.vel_z);
+                //println!("New Vel Y: {}", moon.vel_y);
+                //println!("self vel z: {}, new vel z: {}", self.moons[i].vel_z, moon.vel_z);
                 moon.vel_z = diff(self.moons[i].z, moon.z);
-                println!("New Vel Z: {}", moon.vel_z);
+                //println!("New Vel Z: {}", moon.vel_z);
 
                 // Set updated data
                 moons.push(moon);
@@ -91,13 +91,45 @@ impl Moons {
             self.moons = moons
         }
     }
+
+    fn total_energy(self) -> u32 {
+        let mut sum = 0;
+        for moon in self.moons.iter() {
+            let mut potential_energy = 0;
+            potential_energy += moon.x.abs() + moon.y.abs() + moon.z.abs();
+            let mut kinetic_energy = 0;
+            kinetic_energy += moon.vel_x.abs() + moon.vel_y.abs() + moon.vel_z.abs();
+
+            sum += potential_energy * kinetic_energy;
+        }
+        sum as u32
+    }
 }
 
 fn diff(num1: i32, num2: i32) -> i32 {
     // if both nums are positive or negative
-    println!("Got num1: {}, num2: {}", num1, num2);
+    //println!("Got num1: {}, num2: {}", num1, num2);
 
-    if num1 > 0 {
+    if (num1 > -1) {
+        if num2 < 0 {
+            return num2 - num1
+        } else if num2 < num1 {
+            return num2 - num1
+        } else {
+            return num2 - num1
+        }
+
+    } else {
+        if num2 > -1 {
+            return num1.abs() + num2
+        } else if num2 > num1 {
+            return num1.abs() - num2.abs()
+        } else {
+            return num1.abs() + num2
+        }
+    }
+
+    /* if num1 > 0 {
         if num2 < 0 {
             return num1 - num2
         } else {
@@ -105,7 +137,7 @@ fn diff(num1: i32, num2: i32) -> i32 {
         }
     } else {
         return num2 - num1
-    }
+    } */
 }
 
 fn main() -> io::Result<()> {
@@ -129,10 +161,9 @@ fn main() -> io::Result<()> {
 
     }
         println!("{:?}", moons.moons);
-        moons.step(1);
+        moons.step(1000);
         println!("{:?}", moons.moons);
-        moons.step(1);
-        println!("{:?}", moons.moons);
+        println!("{:?}", moons.total_energy());
 
 
         
